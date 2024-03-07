@@ -1,0 +1,169 @@
+---
+title: "Assignment 1"
+format: docx
+author: "Steven Jackson"
+editor: visual
+---
+
+*Please note: I tried generating a Word document using Quarto but couldn't figure out how to incorporate APA 7 formatting. Please reference the FORMATTED_Assignment1_Jackson_B00829956.docx for the write-up. The generated version has no APA formatting but is otherwise identical.*
+
+The report herein summarizes key findings from the Avengers dataset, which is data collected about the avengers involved during the battle against Thanos.
+
+First, the Tidyverse (Wickham et al., 2019) and Abind (Plate & Heiburger, 2016) R packages were loaded in.
+
+```{r}
+#Library'ing in TidyVerse and aBind for access to useful operations. 
+library(tidyverse)
+library(abind)
+```
+
+Next, the dataset reposition was cloned from <https://github.com/iyakoven/PSYR6003-Assignment-1> .
+
+```{r}
+#Importing the data.
+avengers<-read_csv("avengers.csv")
+```
+
+The data was then inspected for missing and unusual values. The data was subset to include only complete, clean cases.
+
+```{r}
+#Question 1:
+
+#Inspecting the dataset for missing/unusual values.
+
+view(avengers)
+
+```
+
+A new custom variable was created called ‘CombatEffectiveness’, defined as a sum of agility, speed, strength and willpower.
+
+```{r}
+#Question 2: Removing rows with missing data, create CombatEffectiveness.
+
+avengers_clean <- na.omit(avengers)
+avengers_clean1 <- mutate(avengers_clean, CombatEffectiveness=agility+speed+strength+willpower)
+head(avengers_clean1, 20)
+
+```
+
+```{r}
+#Double-checking filtration & new CombatEffectiveness variable.
+
+head(avengers_clean1, 20)
+```
+
+Next, a new copy of the dataset in both SPSS and csv formats was created which only includes the avengers who did not have a superpower and have died. The haven package (Wickham et al., 2023) was loaded in to facilitate creating the SPSS-formatted file.
+
+```{r}
+#Question 3: New dataset copies, summarizing properties of combat effectiveness, kills, & injuries.
+
+#CSV file
+avengers_clean_filtered <- filter(avengers_clean1, superpower=="no" & died=="yes") 
+write.csv(avengers_clean_filtered, "avengers_clean_filtered.csv", row.names=F, na="")
+
+#SPSS file
+library(haven)
+write_sav(avengers_clean_filtered, "avengers_clean_filtered.sav")
+
+#Double-checking that database includes avengers who both did not have superpowers and have died.
+head(avengers_clean_filtered, 20)
+```
+
+Next, summary reports of the overall kills, injuries, and combat effectiveness were prepared. A second report grouped these results by battlefield.
+
+```{r}
+#Summarize properties of combat effectiveness, kills, & injuries
+
+#Overall stats
+mean_stats_overall<- summarize(avengers_clean_filtered,
+          
+          #Kills
+          mean_kills = mean(kills),
+          sd_kills = sd(kills),
+          min_kills = min(kills),
+          max_kills = max(kills),
+          
+          #Injuries
+          mean_injuries = mean(injuries),
+          sd_injuries = sd(injuries),
+          min_injuries = min(injuries),
+          max_injuries = max(injuries),
+          
+          #CombatEffectiveness
+          mean_CE = mean(CombatEffectiveness),
+          sd_CE = sd(CombatEffectiveness),
+          min_ce = min(CombatEffectiveness),
+          max_ce = max(CombatEffectiveness)
+          )
+
+#Stats by battlefield
+grouped_avengers_clean_filtered <- group_by(avengers_clean_filtered, north_south)
+mean_stats_battlefield<- summarize(grouped_avengers_clean_filtered,
+         
+          #Kills
+          mean_kills = mean(kills),
+          sd_kills = sd(kills),
+          min_kills = min(kills),
+          max_kills = max(kills),
+          
+          #Injuries
+          mean_injuries = mean(injuries),
+          sd_injuries = sd(injuries),
+          min_injuries = min(injuries),
+          max_injuries = max(injuries),
+          
+          #CombatEffectiveness
+          mean_CE = mean(CombatEffectiveness),
+          sd_CE = sd(CombatEffectiveness),
+          min_ce = min(CombatEffectiveness),
+          max_ce = max(CombatEffectiveness)
+) 
+
+```
+
+Overall, the mean kills in the dataset is 2.55 (range = 0, 79; SD = 8.81), mean injuries is 4.55 (range = 2, 5; SD = 0.74), and mean combat effectiveness is 497.53 (range = 67.25, 946.89; SD = 177.56).
+
+Presenting the results by battlefield reveals some differences between the north and south battlefields. The mean kills in the north battlefield is 1.71 (range = 0, 34; SD = 4.57), and 4.75 (range = 0, 79; SD = 14.99) in the south battlefield. The mean injuries in the north battlefield is 4.60 (range = 2, 5; SD = 0.68), and 4.43 (range = 2, 5; SD = 0.88) in the south battlefield. The mean combat effectiveness in the north battlefield is 499.78 (range = 130.68, 897.06; SD = 174.07), and 491.68 (range = 67.25, 946.89; SD = 189.53) in the south battlefield.
+
+The north battlefield had both the higher mean combat effectiveness and higher mean injuries. Kills is the most erroneous variable as it has the highest standard deviation relative to its mean value (i.e. a higher proportion of the measurement is attributable to error).
+
+Next, we wanted to see if avengers with superpowers have a higher average IQ than those without. Below, we consider two options for estimating the sample size for an independent t-test of this analysis.
+
+Two ways of estimating the required sample size are a) to include every existing avenger and b) run an a-priori power analysis using the expected effect size of the superpowers-IQ relationship. For the former, this is reasonable given that there was only one battle against Thanos, so the entire population of interest is accessible. For the latter option, running an a-priori power analysis will require estimating an effect size, which can be based on the smallest effect size of interest (SESOI). The SESOI is an estimate of the smallest effect size we would be interested in leveraging in the context of some hypothetical real-world application of the findings (i.e., an intervention, cost-benefit analyses, etc.).
+
+As mentioned above, the effect size can be justified using the SESOI. In this case, we will say that an effect size of d = 0.3 would be of interest. In a real-life context, we might base this on other values already known to be associated with IQ in avengers, and pick an effect size that is equal to or higher than those existing values. If the effect we find is lower than those existing values, time and resources would be better spent investigating those variables.
+
+Using the pwr package (Chameply, 2020) in RStudio, a power analysis was conducted to determine the sample size needed to detect a group difference with a significance level of α = 0.05, power = 0.80, and an effect size of d = 0.3. The alpha and power levels were chosen to be consistent with existing literature in the field, such that a statistically significant finding in one analysis would hypothetically still be considered significant by another researcher’s standard. The effect size is justified above on the basis of SESOI. The two-sided t-test is used, because we are interested in whether avengers with superpowers have either a higher or lower IQ.
+
+```{r}
+library(pwr)
+pwr.t.test(n = NULL, d = .3, sig.level = 0.05, power = .8, 
+           type = c("two.sample"),
+           alternative = c("two.sided"))
+
+#Rounding up, this becomes 176 in each group, or 352 total.
+```
+
+To ensure there is sufficient power to detect a circumstance of zero effect, we conducted an equivalence test. Using the TOSTER package (Caldwell, 2022; Lakens, 2017), an equivalence test was conducted using a significance level of α = 0.05, a sample size of 176 per group, and lower and upper bounds of -0.3 and 0.3 respectively, we have .76 power for an equivalence analysis.
+
+```{r}
+#Equivalence test to confirm if there is no effect.
+library(TOSTER)
+powerTOSTtwo(alpha=0.05, N=176, low_eqbound_d=-0.3, high_eqbound_d=0.3)
+
+#Again rounding up, 191 per group or 382 in total.
+```
+
+Using a test statistic of t = 4.25, two samples of n = 176, and the effectsize package in RStudio (Ben-Shachar et al., 2020), the result is d = 0.45 \[0.24, 0.67\]. The effect size is closest to a medium effect size by Cohen's standards, but can be anywhere from small to medium based on the CI. Whether the estimate is considered precise depends on the context of the analysis; for ours, we were only interested in whether it met the cutoff of a SESOI, that is, an effect size bigger than or equal to 0.3. Since the interval ranges below and above the SESOI, the estimate is not sufficiently precise to say it is of interest.
+
+```{r}
+#Calculating effect size and 95% CI for t = 4.25
+
+library(effectsize) 
+
+t <- 4.25 
+n1 <- 176 
+n2 <- 176
+
+t_to_d(t, df_error = n1+n2-2, paired = FALSE, ci = 0.95)
+```
