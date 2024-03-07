@@ -135,6 +135,8 @@ As mentioned above, the effect size can be justified using the SESOI. In this ca
 
 Using the pwr package (Chameply, 2020) in RStudio, a power analysis was conducted to determine the sample size needed to detect a group difference with a significance level of α = 0.05, power = 0.80, and an effect size of d = 0.3. The alpha and power levels were chosen to be consistent with existing literature in the field, such that a statistically significant finding in one analysis would hypothetically still be considered significant by another researcher’s standard. The effect size is justified above on the basis of SESOI. The two-sided t-test is used, because we are interested in whether avengers with superpowers have either a higher or lower IQ.
 
+Using the pwr package (Chameply, 2020) in RStudio, a power analysis was conducted to determine the sample size needed to detect a group difference with a significance level of α = 0.05, power = 0.80, and an effect size of d = 0.3. The alpha and power levels were chosen to be consistent with existing literature in the field, such that a statistically significant finding in one analysis would hypothetically still be considered significant by another researcher’s standard. The effect size is justified above on the basis of SESOI. The two-sided t-test is used, because we are interested in whether avengers with superpowers have either a higher or lower IQ.
+
 ```{r}
 library(pwr)
 pwr.t.test(n = NULL, d = .3, sig.level = 0.05, power = .8, 
